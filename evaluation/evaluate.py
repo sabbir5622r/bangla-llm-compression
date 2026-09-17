@@ -44,7 +44,7 @@ def load_dataset(cfg, task, data_dir=None):
     return df
 
 
-def generate_prediction(model, tokenizer, prompt, cfg):
+def format_chat(tokenizer, prompt):
     messages = [
         {
             "role": "user",
@@ -52,19 +52,111 @@ def generate_prediction(model, tokenizer, prompt, cfg):
         }
     ]
 
-    text = tokenizer.apply_chat_template(
+    return tokenizer.apply_chat_template(
         messages,
         tokenize=False,
         add_generation_prompt=True,
     )
 
-    max_input_tokens = cfg["evaluation"]["max_input_tokens"]
 
+def fit_prompt(tokenizer, task, example, max_input_tokens):
+    prompt = build_prompt(task, example)
+    text = format_chat(tokenizer, prompt)
+
+    original_input_tokens = len(
+        tokenizer(
+            text,
+            add_special_tokens=False,
+        )["input_ids"]
+    )
+
+    if original_input_tokens <= max_input_tokens:
+        return (
+            text,
+            original_input_tokens,
+            original_input_tokens,
+            False,
+        )
+
+    if task != "fake_news":
+        raise ValueError(
+            f"{task} input exceeds max_input_tokens={max_input_tokens}"
+        )
+
+    empty_example = example.copy()
+    empty_example["text"] = ""
+
+    empty_prompt = build_prompt(task, empty_example)
+    empty_text = format_chat(tokenizer, empty_prompt)
+
+    prompt_tokens = len(
+        tokenizer(
+            empty_text,
+            add_special_tokens=False,
+        )["input_ids"]
+    )
+
+    article_budget = max_input_tokens - prompt_tokens
+
+    if article_budget <= 0:
+        raise ValueError(
+            "Prompt instructions exceed max_input_tokens."
+        )
+
+    article_tokens = tokenizer(
+        str(example["text"]),
+        add_special_tokens=False,
+    )["input_ids"]
+
+    truncated_text = tokenizer.decode(
+        article_tokens[:article_budget],
+        skip_special_tokens=True,
+    )
+
+    truncated_example = example.copy()
+    truncated_example["text"] = truncated_text
+
+    prompt = build_prompt(task, truncated_example)
+    text = format_chat(tokenizer, prompt)
+
+    used_input_tokens = len(
+        tokenizer(
+            text,
+            add_special_tokens=False,
+        )["input_ids"]
+    )
+
+    while used_input_tokens > max_input_tokens:
+        article_tokens = article_tokens[:-1]
+
+        truncated_example["text"] = tokenizer.decode(
+            article_tokens,
+            skip_special_tokens=True,
+        )
+
+        prompt = build_prompt(task, truncated_example)
+        text = format_chat(tokenizer, prompt)
+
+        used_input_tokens = len(
+            tokenizer(
+                text,
+                add_special_tokens=False,
+            )["input_ids"]
+        )
+
+    return (
+        text,
+        original_input_tokens,
+        used_input_tokens,
+        True,
+    )
+
+
+def generate_prediction(model, tokenizer, text, cfg):
     inputs = tokenizer(
         text,
         return_tensors="pt",
-        truncation=True,
-        max_length=max_input_tokens,
+        add_special_tokens=False,
     ).to(model.device)
 
     input_length = inputs["input_ids"].shape[1]
@@ -113,12 +205,22 @@ def evaluate(
     for index, row in df.iterrows():
         example = row.to_dict()
 
-        prompt = build_prompt(task, example)
+        (
+            text,
+            original_input_tokens,
+            used_input_tokens,
+            was_truncated,
+        ) = fit_prompt(
+            tokenizer,
+            task,
+            example,
+            cfg["evaluation"]["max_input_tokens"],
+        )
 
         raw_output = generate_prediction(
             model,
             tokenizer,
-            prompt,
+            text,
             cfg,
         )
 
@@ -134,6 +236,9 @@ def evaluate(
                 "predicted_label": predicted_label,
                 "raw_output": raw_output,
                 "parse_success": parse_success,
+                "original_input_tokens": original_input_tokens,
+                "used_input_tokens": used_input_tokens,
+                "was_truncated": was_truncated,
             }
         )
 

@@ -54,7 +54,7 @@ evaluation:
     int8: 8
     int4: 8
 
-  max_input_tokens: 512
+max_input_tokens: 8192
 
 experiments:
   quantization:
