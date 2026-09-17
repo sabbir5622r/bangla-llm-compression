@@ -2,8 +2,12 @@
 __pycache__/
 *.pyc
 
-data/raw/
-data/processed/
+data/raw/*
+data/processed/*
+
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
 results/
 checkpoints/
 
