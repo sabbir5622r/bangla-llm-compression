@@ -7,7 +7,7 @@ import pandas as pd
 import yaml
 
 
-SENTIMENT_LABELS = {"Positive", "Negative", "Neutral"}
+STANCE_LABELS = {"Pro-Uprising", "Anti-Uprising", "Neutral"}
 FAKE_LABELS = {0, 1}
 NLI_LABELS = {"Entailment", "Neutral", "Contradiction"}
 
@@ -17,56 +17,103 @@ def load_config(path: str) -> dict:
         return yaml.safe_load(f)
 
 
-def clean_sentiment(cfg: dict) -> pd.DataFrame:
+def clean_stance(cfg: dict) -> pd.DataFrame:
     raw_dir = Path(cfg["paths"]["raw_data_dir"])
     out_dir = Path(cfg["paths"]["processed_data_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    ds = cfg["datasets"]["sentiment"]
+    ds = cfg["datasets"]["stance"]
     path = raw_dir / ds["file"]
 
     if not path.exists():
-        raise FileNotFoundError(f"Sentiment dataset not found: {path}")
+        raise FileNotFoundError(f"Stance dataset not found: {path}")
 
     df = pd.read_csv(path)
 
-    required = {"comment", "language", "platform", "label", "emotion", "stance"}
+    required = {
+        "comment",
+        "language",
+        "platform",
+        "label",
+        "emotion",
+        "stance",
+    }
+
     missing = required - set(df.columns)
 
     if missing:
-        raise ValueError(f"Sentiment dataset missing columns: {sorted(missing)}")
+        raise ValueError(
+            f"Stance dataset missing columns: {sorted(missing)}"
+        )
 
     total_rows = len(df)
     missing_comments = df["comment"].isna().sum()
+    missing_stance = df["stance"].isna().sum()
 
-    df = df.dropna(subset=["comment"]).copy()
-    df["platform"] = df["platform"].replace({"Youtube": "YouTube"})
+    df = df.dropna(subset=["comment", "stance"]).copy()
+
+    df["comment"] = df["comment"].astype(str).str.strip()
+    df["stance"] = df["stance"].astype(str).str.strip()
+
+    empty_comments = (df["comment"].str.len() == 0).sum()
+    df = df[df["comment"].str.len() > 0].copy()
+
+    df["platform"] = df["platform"].replace(
+        {"Youtube": "YouTube"}
+    )
 
     duplicate_count = df.duplicated().sum()
     df = df.drop_duplicates().reset_index(drop=True)
 
-    found_labels = set(df["label"].dropna().unique())
+    found_labels = set(df["stance"].unique())
 
-    if not found_labels.issubset(SENTIMENT_LABELS):
-        bad_labels = sorted(found_labels - SENTIMENT_LABELS)
-        raise ValueError(f"Unexpected sentiment labels: {bad_labels}")
+    if not found_labels.issubset(STANCE_LABELS):
+        bad_labels = sorted(found_labels - STANCE_LABELS)
+        raise ValueError(
+            f"Unexpected stance labels: {bad_labels}"
+        )
 
-    task_df = df[["comment", "label"]].copy()
-    task_df = task_df.rename(columns={"comment": "text"})
+    task_df = df[["comment", "stance"]].copy()
 
-    task_path = out_dir / "sentiment.csv"
-    task_df.to_csv(task_path, index=False, encoding="utf-8")
+    task_df = task_df.rename(
+        columns={
+            "comment": "text",
+            "stance": "label",
+        }
+    )
+
+    task_path = out_dir / "stance.csv"
+
+    task_df.to_csv(
+        task_path,
+        index=False,
+        encoding="utf-8",
+    )
 
     metadata_df = df[
-        ["comment", "language", "platform", "emotion", "stance", "label"]
+        [
+            "comment",
+            "language",
+            "platform",
+            "label",
+            "emotion",
+            "stance",
+        ]
     ].copy()
 
-    metadata_path = out_dir / "sentiment_metadata.csv"
-    metadata_df.to_csv(metadata_path, index=False, encoding="utf-8")
+    metadata_path = out_dir / "stance_metadata.csv"
 
-    print("\nSentiment")
+    metadata_df.to_csv(
+        metadata_path,
+        index=False,
+        encoding="utf-8",
+    )
+
+    print("\nStance")
     print(f"Input rows: {total_rows}")
     print(f"Missing comments removed: {missing_comments}")
+    print(f"Missing stance labels removed: {missing_stance}")
+    print(f"Empty comments removed: {empty_comments}")
     print(f"Duplicates removed: {duplicate_count}")
     print(f"Final rows: {len(task_df)}")
 
@@ -74,6 +121,7 @@ def clean_sentiment(cfg: dict) -> pd.DataFrame:
     print(task_df["label"].value_counts())
 
     print(f"\nSaved: {task_path}")
+    print(f"Saved metadata: {metadata_path}")
 
     return task_df
 
@@ -94,7 +142,9 @@ def clean_fake_news(cfg: dict) -> pd.DataFrame:
         )
 
     if not fake_path.exists():
-        raise FileNotFoundError(f"Fake-news dataset not found: {fake_path}")
+        raise FileNotFoundError(
+            f"Fake-news dataset not found: {fake_path}"
+        )
 
     authentic = pd.read_csv(authentic_path)
     fake = pd.read_csv(fake_path)
@@ -125,13 +175,20 @@ def clean_fake_news(cfg: dict) -> pd.DataFrame:
     authentic["source_type"] = "authentic"
     fake["source_type"] = "fake"
 
-    combined = pd.concat([authentic, fake], ignore_index=True)
+    combined = pd.concat(
+        [authentic, fake],
+        ignore_index=True,
+    )
 
-    found_labels = set(combined["label"].dropna().unique())
+    found_labels = set(
+        combined["label"].dropna().unique()
+    )
 
     if not found_labels.issubset(FAKE_LABELS):
         bad_labels = sorted(found_labels - FAKE_LABELS)
-        raise ValueError(f"Unexpected fake-news labels: {bad_labels}")
+        raise ValueError(
+            f"Unexpected fake-news labels: {bad_labels}"
+        )
 
     missing_headlines = combined["headline"].isna().sum()
     missing_content = combined["content"].isna().sum()
@@ -151,17 +208,32 @@ def clean_fake_news(cfg: dict) -> pd.DataFrame:
     )
 
     combined["text"] = (
-        combined["headline"] + "\n\n" + combined["content"]
+        combined["headline"]
+        + "\n\n"
+        + combined["content"]
     ).str.strip()
 
-    empty_text_count = (combined["text"].str.len() == 0).sum()
-    combined = combined[combined["text"].str.len() > 0].copy()
+    empty_text_count = (
+        combined["text"].str.len() == 0
+    ).sum()
+
+    combined = combined[
+        combined["text"].str.len() > 0
+    ].copy()
+
     combined = combined.reset_index(drop=True)
 
-    task_df = combined[["articleID", "text", "label"]].copy()
+    task_df = combined[
+        ["articleID", "text", "label"]
+    ].copy()
 
     task_path = out_dir / "fake_news.csv"
-    task_df.to_csv(task_path, index=False, encoding="utf-8")
+
+    task_df.to_csv(
+        task_path,
+        index=False,
+        encoding="utf-8",
+    )
 
     metadata_cols = [
         col
@@ -212,7 +284,9 @@ def clean_nli(cfg: dict) -> pd.DataFrame:
     path = raw_dir / ds["file"]
 
     if not path.exists():
-        raise FileNotFoundError(f"NLI dataset not found: {path}")
+        raise FileNotFoundError(
+            f"NLI dataset not found: {path}"
+        )
 
     df = pd.read_csv(path)
 
@@ -255,7 +329,10 @@ def clean_nli(cfg: dict) -> pd.DataFrame:
         for column, label in label_columns.items():
             hypothesis = row[column]
 
-            if pd.isna(hypothesis) or not str(hypothesis).strip():
+            if (
+                pd.isna(hypothesis)
+                or not str(hypothesis).strip()
+            ):
                 skipped_hypotheses += 1
                 continue
 
@@ -263,7 +340,9 @@ def clean_nli(cfg: dict) -> pd.DataFrame:
                 {
                     "group_id": row_id,
                     "Premise": premise,
-                    "Hypothesis": str(hypothesis).strip(),
+                    "Hypothesis": str(
+                        hypothesis
+                    ).strip(),
                     "label": label,
                 }
             )
@@ -271,34 +350,69 @@ def clean_nli(cfg: dict) -> pd.DataFrame:
     nli_df = pd.DataFrame(records)
 
     if nli_df.empty:
-        raise ValueError("No valid NLI examples were generated.")
+        raise ValueError(
+            "No valid NLI examples were generated."
+        )
 
     generated_examples = len(nli_df)
 
     duplicate_mask = nli_df.duplicated(
-        subset=["Premise", "Hypothesis", "label"]
+        subset=[
+            "Premise",
+            "Hypothesis",
+            "label",
+        ]
     )
 
     duplicate_pairs = duplicate_mask.sum()
 
-    nli_df = nli_df[~duplicate_mask].reset_index(drop=True)
+    nli_df = nli_df[
+        ~duplicate_mask
+    ].reset_index(drop=True)
 
-    found_labels = set(nli_df["label"].unique())
+    found_labels = set(
+        nli_df["label"].unique()
+    )
 
     if not found_labels.issubset(NLI_LABELS):
-        bad_labels = sorted(found_labels - NLI_LABELS)
-        raise ValueError(f"Unexpected NLI labels: {bad_labels}")
+        bad_labels = sorted(
+            found_labels - NLI_LABELS
+        )
+
+        raise ValueError(
+            f"Unexpected NLI labels: {bad_labels}"
+        )
 
     task_path = out_dir / "nli.csv"
-    nli_df.to_csv(task_path, index=False, encoding="utf-8")
+
+    nli_df.to_csv(
+        task_path,
+        index=False,
+        encoding="utf-8",
+    )
 
     print("\nNLI")
     print(f"Original rows: {original_rows}")
-    print(f"Original duplicate rows: {original_duplicates}")
-    print(f"Skipped premises: {skipped_premises}")
-    print(f"Skipped hypotheses: {skipped_hypotheses}")
-    print(f"Generated examples: {generated_examples}")
-    print(f"Duplicate pairs removed: {duplicate_pairs}")
+    print(
+        f"Original duplicate rows: "
+        f"{original_duplicates}"
+    )
+    print(
+        f"Skipped premises: "
+        f"{skipped_premises}"
+    )
+    print(
+        f"Skipped hypotheses: "
+        f"{skipped_hypotheses}"
+    )
+    print(
+        f"Generated examples: "
+        f"{generated_examples}"
+    )
+    print(
+        f"Duplicate pairs removed: "
+        f"{duplicate_pairs}"
+    )
     print(f"Final rows: {len(nli_df)}")
 
     print("\nLabel distribution:")
@@ -319,15 +433,21 @@ def main() -> None:
 
     parser.add_argument(
         "--task",
-        choices=["all", "sentiment", "fake_news", "nli"],
+        choices=[
+            "all",
+            "stance",
+            "fake_news",
+            "nli",
+        ],
         default="all",
     )
 
     args = parser.parse_args()
+
     cfg = load_config(args.config)
 
-    if args.task in {"all", "sentiment"}:
-        clean_sentiment(cfg)
+    if args.task in {"all", "stance"}:
+        clean_stance(cfg)
 
     if args.task in {"all", "fake_news"}:
         clean_fake_news(cfg)

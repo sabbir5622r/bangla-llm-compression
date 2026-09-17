@@ -7,7 +7,7 @@ from sklearn.metrics import (
 
 
 TASK_LABELS = {
-    "sentiment": ["Positive", "Negative", "Neutral"],
+    "stance": ["Pro-Uprising", "Anti-Uprising", "Neutral"],
     "nli": ["Entailment", "Neutral", "Contradiction"],
     "fake_news": ["Authentic", "Fake"],
 }
@@ -20,13 +20,20 @@ def compute_metrics(y_true, y_pred, task):
     labels = TASK_LABELS[task]
 
     if len(y_true) != len(y_pred):
-        raise ValueError("y_true and y_pred must have the same length.")
+        raise ValueError(
+            "y_true and y_pred must have the same length."
+        )
 
     if not y_true:
-        raise ValueError("No predictions were provided.")
+        raise ValueError(
+            "No predictions were provided."
+        )
 
     metrics = {
-        "accuracy": accuracy_score(y_true, y_pred),
+        "accuracy": accuracy_score(
+            y_true,
+            y_pred,
+        ),
         "macro_f1": f1_score(
             y_true,
             y_pred,
@@ -60,7 +67,10 @@ def compute_metrics(y_true, y_pred, task):
 
     metrics["f1_per_class"] = {
         label: score
-        for label, score in zip(labels, per_class_f1)
+        for label, score in zip(
+            labels,
+            per_class_f1,
+        )
     }
 
     return metrics

@@ -21,8 +21,8 @@ def load_dataset(cfg, task, data_dir=None):
     else:
         processed_dir = Path(data_dir)
 
-    if task == "sentiment":
-        path = processed_dir / "sentiment.csv"
+    if task == "stance":
+        path = processed_dir / "stance.csv"
     elif task == "nli":
         path = processed_dir / "nli.csv"
     elif task == "fake_news":
@@ -31,15 +31,21 @@ def load_dataset(cfg, task, data_dir=None):
         raise ValueError(f"Unknown task: {task}")
 
     if not path.exists():
-        raise FileNotFoundError(f"Processed dataset not found: {path}")
+        raise FileNotFoundError(
+            f"Processed dataset not found: {path}"
+        )
 
     df = pd.read_csv(path)
 
     if task == "fake_news":
-        df["label"] = df["label"].map(FAKE_NEWS_LABELS)
+        df["label"] = df["label"].map(
+            FAKE_NEWS_LABELS
+        )
 
         if df["label"].isna().any():
-            raise ValueError("Unexpected fake-news labels.")
+            raise ValueError(
+                "Unexpected fake-news labels."
+            )
 
     return df
 
@@ -59,9 +65,21 @@ def format_chat(tokenizer, prompt):
     )
 
 
-def fit_prompt(tokenizer, task, example, max_input_tokens):
-    prompt = build_prompt(task, example)
-    text = format_chat(tokenizer, prompt)
+def fit_prompt(
+    tokenizer,
+    task,
+    example,
+    max_input_tokens,
+):
+    prompt = build_prompt(
+        task,
+        example,
+    )
+
+    text = format_chat(
+        tokenizer,
+        prompt,
+    )
 
     original_input_tokens = len(
         tokenizer(
@@ -80,14 +98,22 @@ def fit_prompt(tokenizer, task, example, max_input_tokens):
 
     if task != "fake_news":
         raise ValueError(
-            f"{task} input exceeds max_input_tokens={max_input_tokens}"
+            f"{task} input exceeds "
+            f"max_input_tokens={max_input_tokens}"
         )
 
     empty_example = example.copy()
     empty_example["text"] = ""
 
-    empty_prompt = build_prompt(task, empty_example)
-    empty_text = format_chat(tokenizer, empty_prompt)
+    empty_prompt = build_prompt(
+        task,
+        empty_example,
+    )
+
+    empty_text = format_chat(
+        tokenizer,
+        empty_prompt,
+    )
 
     prompt_tokens = len(
         tokenizer(
@@ -96,11 +122,14 @@ def fit_prompt(tokenizer, task, example, max_input_tokens):
         )["input_ids"]
     )
 
-    article_budget = max_input_tokens - prompt_tokens
+    article_budget = (
+        max_input_tokens - prompt_tokens
+    )
 
     if article_budget <= 0:
         raise ValueError(
-            "Prompt instructions exceed max_input_tokens."
+            "Prompt instructions exceed "
+            "max_input_tokens."
         )
 
     article_tokens = tokenizer(
@@ -116,8 +145,15 @@ def fit_prompt(tokenizer, task, example, max_input_tokens):
     truncated_example = example.copy()
     truncated_example["text"] = truncated_text
 
-    prompt = build_prompt(task, truncated_example)
-    text = format_chat(tokenizer, prompt)
+    prompt = build_prompt(
+        task,
+        truncated_example,
+    )
+
+    text = format_chat(
+        tokenizer,
+        prompt,
+    )
 
     used_input_tokens = len(
         tokenizer(
@@ -129,13 +165,22 @@ def fit_prompt(tokenizer, task, example, max_input_tokens):
     while used_input_tokens > max_input_tokens:
         article_tokens = article_tokens[:-1]
 
-        truncated_example["text"] = tokenizer.decode(
-            article_tokens,
-            skip_special_tokens=True,
+        truncated_example["text"] = (
+            tokenizer.decode(
+                article_tokens,
+                skip_special_tokens=True,
+            )
         )
 
-        prompt = build_prompt(task, truncated_example)
-        text = format_chat(tokenizer, prompt)
+        prompt = build_prompt(
+            task,
+            truncated_example,
+        )
+
+        text = format_chat(
+            tokenizer,
+            prompt,
+        )
 
         used_input_tokens = len(
             tokenizer(
@@ -152,23 +197,35 @@ def fit_prompt(tokenizer, task, example, max_input_tokens):
     )
 
 
-def generate_prediction(model, tokenizer, text, cfg):
+def generate_prediction(
+    model,
+    tokenizer,
+    text,
+    cfg,
+):
     inputs = tokenizer(
         text,
         return_tensors="pt",
         add_special_tokens=False,
     ).to(model.device)
 
-    input_length = inputs["input_ids"].shape[1]
+    input_length = (
+        inputs["input_ids"].shape[1]
+    )
 
     with torch.inference_mode():
         output = model.generate(
             **inputs,
-            max_new_tokens=cfg["evaluation"]["max_new_tokens"],
+            max_new_tokens=cfg[
+                "evaluation"
+            ]["max_new_tokens"],
             do_sample=False,
         )
 
-    generated = output[0, input_length:]
+    generated = output[
+        0,
+        input_length:,
+    ]
 
     return tokenizer.decode(
         generated,
@@ -214,7 +271,9 @@ def evaluate(
             tokenizer,
             task,
             example,
-            cfg["evaluation"]["max_input_tokens"],
+            cfg["evaluation"][
+                "max_input_tokens"
+            ],
         )
 
         raw_output = generate_prediction(
@@ -224,7 +283,10 @@ def evaluate(
             cfg,
         )
 
-        predicted_label, parse_success = parse_output(
+        (
+            predicted_label,
+            parse_success,
+        ) = parse_output(
             raw_output,
             task,
         )
@@ -233,16 +295,28 @@ def evaluate(
             {
                 "example_id": index,
                 "true_label": row["label"],
-                "predicted_label": predicted_label,
+                "predicted_label": (
+                    predicted_label
+                ),
                 "raw_output": raw_output,
-                "parse_success": parse_success,
-                "original_input_tokens": original_input_tokens,
-                "used_input_tokens": used_input_tokens,
-                "was_truncated": was_truncated,
+                "parse_success": (
+                    parse_success
+                ),
+                "original_input_tokens": (
+                    original_input_tokens
+                ),
+                "used_input_tokens": (
+                    used_input_tokens
+                ),
+                "was_truncated": (
+                    was_truncated
+                ),
             }
         )
 
-    results_df = pd.DataFrame(results)
+    results_df = pd.DataFrame(
+        results
+    )
 
     valid_df = results_df[
         results_df["parse_success"]
@@ -252,8 +326,12 @@ def evaluate(
 
     if not valid_df.empty:
         metrics = compute_metrics(
-            valid_df["true_label"].tolist(),
-            valid_df["predicted_label"].tolist(),
+            valid_df[
+                "true_label"
+            ].tolist(),
+            valid_df[
+                "predicted_label"
+            ].tolist(),
             task,
         )
 

@@ -16,10 +16,10 @@ paths:
 
 datasets:
 
-  sentiment:
+  stance:
     file: sentiment.csv
     text_column: comment
-    label_column: label
+    label_column: stance
 
   fake_news:
     authentic_file: LabeledAuthentic-7K.csv

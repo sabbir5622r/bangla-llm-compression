@@ -1,23 +1,25 @@
 TASK_LABELS = {
-    "sentiment": ["Positive", "Negative", "Neutral"],
+    "stance": ["Pro-Uprising", "Anti-Uprising", "Neutral"],
     "nli": ["Entailment", "Neutral", "Contradiction"],
     "fake_news": ["Authentic", "Fake"],
 }
 
 
 def build_prompt(task, example):
-    if task == "sentiment":
+    if task == "stance":
         return (
-            "Classify the sentiment of the following Bangla social media "
-            "comment about the July Revolution in Bangladesh.\n\n"
+            "Determine the stance of the following Bangla social media "
+            "comment toward the July Revolution/uprising in Bangladesh.\n\n"
             "Use these labels:\n"
-            "Positive: the comment supports the protest/uprising or expresses "
-            "a positive view toward it.\n"
-            "Negative: the comment opposes the protest/uprising or supports "
-            "actions against the protesting students.\n"
-            "Neutral: the comment neither clearly supports nor opposes the "
-            "protest/uprising.\n\n"
-            "Choose exactly one label: Positive, Negative, Neutral.\n"
+            "Pro-Uprising: the comment supports the uprising, protesters, "
+            "or protesting students, or expresses opposition to actions "
+            "against them.\n"
+            "Anti-Uprising: the comment opposes, criticizes, or attacks "
+            "the uprising, protesters, or protesting students, or supports "
+            "actions against them.\n"
+            "Neutral: the comment does not express a clear position either "
+            "for or against the uprising.\n\n"
+            "Choose exactly one label: Pro-Uprising, Anti-Uprising, Neutral.\n"
             "Return only the label.\n\n"
             f"Text: {example['text']}"
         )
