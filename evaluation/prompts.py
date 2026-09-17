@@ -8,7 +8,15 @@ TASK_LABELS = {
 def build_prompt(task, example):
     if task == "sentiment":
         return (
-            "Classify the sentiment of the following Bangla text.\n"
+            "Classify the sentiment of the following Bangla social media "
+            "comment about the July Revolution in Bangladesh.\n\n"
+            "Use these labels:\n"
+            "Positive: the comment supports the protest/uprising or expresses "
+            "a positive view toward it.\n"
+            "Negative: the comment opposes the protest/uprising or supports "
+            "actions against the protesting students.\n"
+            "Neutral: the comment neither clearly supports nor opposes the "
+            "protest/uprising.\n\n"
             "Choose exactly one label: Positive, Negative, Neutral.\n"
             "Return only the label.\n\n"
             f"Text: {example['text']}"
