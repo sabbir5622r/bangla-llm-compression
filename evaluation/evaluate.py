@@ -15,8 +15,11 @@ FAKE_NEWS_LABELS = {
 }
 
 
-def load_dataset(cfg, task):
-    processed_dir = Path(cfg["paths"]["processed_data_dir"])
+def load_dataset(cfg, task, data_dir=None):
+    if data_dir is None:
+        processed_dir = Path(cfg["paths"]["processed_data_dir"])
+    else:
+        processed_dir = Path(data_dir)
 
     if task == "sentiment":
         path = processed_dir / "sentiment.csv"
@@ -86,10 +89,11 @@ def evaluate(
     task,
     quantization="fp16",
     limit=None,
+    data_dir=None,
 ):
     cfg = load_config()
 
-    df = load_dataset(cfg, task)
+df = load_dataset(cfg, task, data_dir=data_dir)
 
     if limit is not None:
         df = df.head(limit).copy()
