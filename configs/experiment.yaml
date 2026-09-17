@@ -1,0 +1,66 @@
+project:
+  name: bangla-llm-compression
+  seed: 42
+
+paths:
+  data_dir: data
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  model_dir: models
+  result_dir: results
+  raw_result_dir: results/raw
+  processed_result_dir: results/processed
+  figure_dir: figures
+  log_dir: logs
+
+
+datasets:
+
+  sentiment:
+    file: sentiment.csv
+    text_column: comment
+    label_column: label
+
+  fake_news:
+    authentic_file: LabeledAuthentic-7K.csv
+    fake_file: LabeledFake-1K.csv
+    text_columns:
+      - headline
+      - content
+    label_column: label
+
+  nli:
+    file: bangla_nli.csv
+    columns:
+      - Premise
+      - Entailment
+      - Neutral
+      - Contradiction
+
+evaluation:
+  primary_metric: macro_f1
+  secondary_metrics:
+    - accuracy
+    - precision_macro
+    - recall_macro
+    - f1_per_class
+
+  max_new_tokens: 8
+  do_sample: false
+  temperature: null
+
+  batch_size:
+    fp16: 8
+    int8: 8
+    int4: 8
+
+  max_input_tokens: 512
+
+experiments:
+  quantization:
+    - fp16
+    - int8
+    - int4
+
+  # Model IDs will be filled only after the model-selection stage.
+  models: []
