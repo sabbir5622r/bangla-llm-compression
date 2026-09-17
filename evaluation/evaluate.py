@@ -93,7 +93,11 @@ def evaluate(
 ):
     cfg = load_config()
 
-df = load_dataset(cfg, task, data_dir=data_dir)
+    df = load_dataset(
+        cfg,
+        task,
+        data_dir=data_dir,
+    )
 
     if limit is not None:
         df = df.head(limit).copy()
@@ -135,7 +139,9 @@ df = load_dataset(cfg, task, data_dir=data_dir)
 
     results_df = pd.DataFrame(results)
 
-    valid_df = results_df[results_df["parse_success"]].copy()
+    valid_df = results_df[
+        results_df["parse_success"]
+    ].copy()
 
     metrics = None
 
