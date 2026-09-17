@@ -62,5 +62,15 @@ experiments:
     - int8
     - int4
 
-  # Model IDs will be filled only after the model-selection stage.
-  models: []
+  models:
+    - name: qwen2.5-0.5b-instruct
+      model_id: Qwen/Qwen2.5-0.5B-Instruct
+      size: 0.5b
+
+    - name: qwen2.5-1.5b-instruct
+      model_id: Qwen/Qwen2.5-1.5B-Instruct
+      size: 1.5b
+
+    - name: qwen2.5-3b-instruct
+      model_id: Qwen/Qwen2.5-3B-Instruct
+      size: 3b
