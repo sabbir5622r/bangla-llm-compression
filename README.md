@@ -8,34 +8,24 @@ Studying post-training quantization of small instruction-tuned LLMs on Bangla la
 - INT8
 - INT4
 
+
 ## Tasks
 
-1. Bangla sentiment classification
-2. Bangla fake-news classification
-3. Bangla natural-language inference
+- Sentiment classification
+- Natural language inference
+- Fake-news classification
 
-## Development workflow
+## Structure
 
-VS Code -> Git -> GitHub -> Kaggle -> GPU experiments -> results -> GitHub
+- `data/` - dataset preparation
+- `configs/` - experiment configuration
+- `models/` - model loading
+- `evaluation/` - evaluation
+- `efficiency/` - efficiency measurement
+- `experiments/` - experiment scripts
+- `analysis/` - result analysis
 
-## First-stage setup
+## Setup
 
-Place the three local CSV files under:
-
-`data/raw/`
-
-Expected files:
-
-- `sentiment.csv`
-- `LabeledAuthentic-7K.csv`
-- `LabeledFake-1K.csv`
-
-Then run:
-
-```powershell
-python -m pip install -r requirements.txt
-python data/inspect_dataset.py
-python data/prepare_datasets.py
-```
-
-
+```bash
+pip install -r requirements.txt
