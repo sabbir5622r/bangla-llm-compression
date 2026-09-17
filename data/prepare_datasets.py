@@ -57,7 +57,6 @@ def clean_sentiment(cfg: dict) -> pd.DataFrame:
     task_path = out_dir / "sentiment.csv"
     task_df.to_csv(task_path, index=False, encoding="utf-8")
 
-    # Keep metadata separate from model input.
     metadata_df = df[
         ["comment", "language", "platform", "emotion", "stance", "label"]
     ].copy()
@@ -120,6 +119,12 @@ def clean_fake_news(cfg: dict) -> pd.DataFrame:
                 f"{name} dataset missing columns: {sorted(missing)}"
             )
 
+    authentic = authentic.copy()
+    fake = fake.copy()
+
+    authentic["source_type"] = "authentic"
+    fake["source_type"] = "fake"
+
     combined = pd.concat([authentic, fake], ignore_index=True)
 
     found_labels = set(combined["label"].dropna().unique())
@@ -151,25 +156,18 @@ def clean_fake_news(cfg: dict) -> pd.DataFrame:
 
     empty_text_count = (combined["text"].str.len() == 0).sum()
     combined = combined[combined["text"].str.len() > 0].copy()
+    combined = combined.reset_index(drop=True)
 
     task_df = combined[["articleID", "text", "label"]].copy()
-
-    duplicate_ids = task_df.duplicated(subset=["articleID"]).sum()
-
-    task_df = (
-        task_df
-        .drop_duplicates(subset=["articleID"])
-        .reset_index(drop=True)
-    )
 
     task_path = out_dir / "fake_news.csv"
     task_df.to_csv(task_path, index=False, encoding="utf-8")
 
-   
     metadata_cols = [
         col
         for col in [
             "articleID",
+            "source_type",
             "domain",
             "date",
             "category",
@@ -195,7 +193,6 @@ def clean_fake_news(cfg: dict) -> pd.DataFrame:
     print(f"Missing headlines: {missing_headlines}")
     print(f"Missing content: {missing_content}")
     print(f"Empty texts removed: {empty_text_count}")
-    print(f"Duplicate article IDs removed: {duplicate_ids}")
     print(f"Final rows: {len(task_df)}")
 
     print("\nLabel distribution:")
@@ -292,7 +289,6 @@ def clean_nli(cfg: dict) -> pd.DataFrame:
         bad_labels = sorted(found_labels - NLI_LABELS)
         raise ValueError(f"Unexpected NLI labels: {bad_labels}")
 
-    
     task_path = out_dir / "nli.csv"
     nli_df.to_csv(task_path, index=False, encoding="utf-8")
 
