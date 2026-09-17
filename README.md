@@ -1,6 +1,6 @@
 # Bangla LLM Compression
 
-Research code for studying post-training quantization of small instruction-tuned LLMs on Bangla language-understanding tasks.
+Studying post-training quantization of small instruction-tuned LLMs on Bangla language-understanding tasks.
 
 ## Main comparison
 
@@ -38,8 +38,4 @@ python data/inspect_dataset.py
 python data/prepare_datasets.py
 ```
 
-The NLI dataset is downloaded from Hugging Face by the preparation script.
 
-## Important
-
-Do not commit raw datasets. The `.gitignore` excludes `data/raw/`.
