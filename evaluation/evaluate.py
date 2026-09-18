@@ -15,20 +15,51 @@ FAKE_NEWS_LABELS = {
 }
 
 
-def load_dataset(cfg, task, data_dir=None):
+def load_dataset(
+    cfg,
+    task,
+    data_dir=None,
+    split=None,
+):
     if data_dir is None:
-        processed_dir = Path(cfg["paths"]["processed_data_dir"])
+        processed_dir = Path(
+            cfg["paths"]["processed_data_dir"]
+        )
     else:
         processed_dir = Path(data_dir)
 
-    if task == "stance":
-        path = processed_dir / "stance.csv"
-    elif task == "nli":
-        path = processed_dir / "nli.csv"
-    elif task == "fake_news":
-        path = processed_dir / "fake_news.csv"
+    filenames = {
+        "stance": "stance.csv",
+        "nli": "nli.csv",
+        "fake_news": "fake_news.csv",
+    }
+
+    if task not in filenames:
+        raise ValueError(
+            f"Unknown task: {task}"
+        )
+
+    if split is None:
+        path = (
+            processed_dir
+            / filenames[task]
+        )
     else:
-        raise ValueError(f"Unknown task: {task}")
+        if split not in {
+            "train",
+            "dev",
+            "test",
+        }:
+            raise ValueError(
+                f"Unknown split: {split}"
+            )
+
+        path = (
+            processed_dir
+            / "splits"
+            / task
+            / f"{split}.csv"
+        )
 
     if not path.exists():
         raise FileNotFoundError(
@@ -50,7 +81,10 @@ def load_dataset(cfg, task, data_dir=None):
     return df
 
 
-def format_chat(tokenizer, prompt):
+def format_chat(
+    tokenizer,
+    prompt,
+):
     messages = [
         {
             "role": "user",
@@ -88,7 +122,10 @@ def fit_prompt(
         )["input_ids"]
     )
 
-    if original_input_tokens <= max_input_tokens:
+    if (
+        original_input_tokens
+        <= max_input_tokens
+    ):
         return (
             text,
             original_input_tokens,
@@ -99,7 +136,8 @@ def fit_prompt(
     if task != "fake_news":
         raise ValueError(
             f"{task} input exceeds "
-            f"max_input_tokens={max_input_tokens}"
+            f"max_input_tokens="
+            f"{max_input_tokens}"
         )
 
     empty_example = example.copy()
@@ -123,7 +161,8 @@ def fit_prompt(
     )
 
     article_budget = (
-        max_input_tokens - prompt_tokens
+        max_input_tokens
+        - prompt_tokens
     )
 
     if article_budget <= 0:
@@ -138,12 +177,19 @@ def fit_prompt(
     )["input_ids"]
 
     truncated_text = tokenizer.decode(
-        article_tokens[:article_budget],
+        article_tokens[
+            :article_budget
+        ],
         skip_special_tokens=True,
     )
 
-    truncated_example = example.copy()
-    truncated_example["text"] = truncated_text
+    truncated_example = (
+        example.copy()
+    )
+
+    truncated_example["text"] = (
+        truncated_text
+    )
 
     prompt = build_prompt(
         task,
@@ -162,8 +208,13 @@ def fit_prompt(
         )["input_ids"]
     )
 
-    while used_input_tokens > max_input_tokens:
-        article_tokens = article_tokens[:-1]
+    while (
+        used_input_tokens
+        > max_input_tokens
+    ):
+        article_tokens = (
+            article_tokens[:-1]
+        )
 
         truncated_example["text"] = (
             tokenizer.decode(
@@ -239,6 +290,7 @@ def evaluate(
     quantization="fp16",
     limit=None,
     data_dir=None,
+    split=None,
 ):
     cfg = load_config()
 
@@ -246,10 +298,13 @@ def evaluate(
         cfg,
         task,
         data_dir=data_dir,
+        split=split,
     )
 
     if limit is not None:
-        df = df.head(limit).copy()
+        df = df.head(
+            limit
+        ).copy()
 
     model, tokenizer = load_model(
         model_name,
@@ -276,11 +331,13 @@ def evaluate(
             ],
         )
 
-        raw_output = generate_prediction(
-            model,
-            tokenizer,
-            text,
-            cfg,
+        raw_output = (
+            generate_prediction(
+                model,
+                tokenizer,
+                text,
+                cfg,
+            )
         )
 
         (
@@ -294,11 +351,15 @@ def evaluate(
         results.append(
             {
                 "example_id": index,
-                "true_label": row["label"],
+                "true_label": (
+                    row["label"]
+                ),
                 "predicted_label": (
                     predicted_label
                 ),
-                "raw_output": raw_output,
+                "raw_output": (
+                    raw_output
+                ),
                 "parse_success": (
                     parse_success
                 ),
@@ -335,4 +396,7 @@ def evaluate(
             task,
         )
 
-    return results_df, metrics
+    return (
+        results_df,
+        metrics,
+    )
