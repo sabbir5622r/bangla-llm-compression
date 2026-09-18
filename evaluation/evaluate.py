@@ -283,6 +283,7 @@ def get_result_path(
     task,
     quantization,
     split,
+    limit=None,
 ):
     result_dir = Path(
         cfg["paths"]["raw_result_dir"]
@@ -305,11 +306,18 @@ def get_result_path(
         else "full"
     )
 
+    limit_name = (
+        f"_limit{limit}"
+        if limit is not None
+        else ""
+    )
+
     filename = (
         f"{safe_model_name}_"
         f"{quantization}_"
         f"{task}_"
-        f"{split_name}.csv"
+        f"{split_name}"
+        f"{limit_name}.csv"
     )
 
     return result_dir / filename
@@ -345,6 +353,7 @@ def evaluate(
         task,
         quantization,
         split,
+        limit=limit,
     )
 
     results = []
