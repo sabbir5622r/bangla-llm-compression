@@ -7,3 +7,4 @@ tqdm>=4.66,<5
 transformers>=4.45,<5
 accelerate>=1.0,<2
 torch>=2.4,<3
+bitsandbytes
