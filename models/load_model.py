@@ -2,7 +2,11 @@ from pathlib import Path
 
 import torch
 import yaml
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+)
 
 
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "configs" / "experiment.yaml"
@@ -25,11 +29,6 @@ def load_model(model_name, quantization="fp16", cfg=None):
     if cfg is None:
         cfg = load_config()
 
-    if quantization != "fp16":
-        raise ValueError(
-            f"Quantization '{quantization}' is not implemented yet."
-        )
-
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA GPU is required for model inference.")
 
@@ -38,11 +37,28 @@ def load_model(model_name, quantization="fp16", cfg=None):
 
     tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        dtype=torch.float16,
-        device_map="auto",
-    )
+    if quantization == "fp16":
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            dtype=torch.float16,
+            device_map="auto",
+        )
+
+    elif quantization == "int8":
+        quantization_config = BitsAndBytesConfig(
+            load_in_8bit=True,
+        )
+
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            quantization_config=quantization_config,
+            device_map="auto",
+        )
+
+    else:
+        raise ValueError(
+            f"Quantization '{quantization}' is not implemented yet."
+        )
 
     model.eval()
 
