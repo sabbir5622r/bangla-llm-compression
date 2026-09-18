@@ -177,19 +177,12 @@ def fit_prompt(
     )["input_ids"]
 
     truncated_text = tokenizer.decode(
-        article_tokens[
-            :article_budget
-        ],
+        article_tokens[:article_budget],
         skip_special_tokens=True,
     )
 
-    truncated_example = (
-        example.copy()
-    )
-
-    truncated_example["text"] = (
-        truncated_text
-    )
+    truncated_example = example.copy()
+    truncated_example["text"] = truncated_text
 
     prompt = build_prompt(
         task,
@@ -284,6 +277,44 @@ def generate_prediction(
     ).strip()
 
 
+def get_result_path(
+    cfg,
+    model_name,
+    task,
+    quantization,
+    split,
+):
+    result_dir = Path(
+        cfg["paths"]["raw_result_dir"]
+    )
+
+    result_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    safe_model_name = (
+        model_name
+        .replace("/", "_")
+        .replace("\\", "_")
+    )
+
+    split_name = (
+        split
+        if split is not None
+        else "full"
+    )
+
+    filename = (
+        f"{safe_model_name}_"
+        f"{quantization}_"
+        f"{task}_"
+        f"{split_name}.csv"
+    )
+
+    return result_dir / filename
+
+
 def evaluate(
     model_name,
     task,
@@ -291,6 +322,8 @@ def evaluate(
     limit=None,
     data_dir=None,
     split=None,
+    checkpoint_every=25,
+    resume=True,
 ):
     cfg = load_config()
 
@@ -306,78 +339,180 @@ def evaluate(
             limit
         ).copy()
 
-    model, tokenizer = load_model(
+    result_path = get_result_path(
+        cfg,
         model_name,
-        quantization=quantization,
-        cfg=cfg,
+        task,
+        quantization,
+        split,
     )
 
     results = []
+    completed_ids = set()
 
-    for index, row in df.iterrows():
-        example = row.to_dict()
-
-        (
-            text,
-            original_input_tokens,
-            used_input_tokens,
-            was_truncated,
-        ) = fit_prompt(
-            tokenizer,
-            task,
-            example,
-            cfg["evaluation"][
-                "max_input_tokens"
-            ],
+    if resume and result_path.exists():
+        checkpoint_df = pd.read_csv(
+            result_path
         )
 
-        raw_output = (
-            generate_prediction(
-                model,
-                tokenizer,
+        results = checkpoint_df.to_dict(
+            "records"
+        )
+
+        completed_ids = set(
+            checkpoint_df[
+                "example_id"
+            ].tolist()
+        )
+
+        print(
+            f"Resuming from "
+            f"{len(completed_ids)} "
+            f"completed examples."
+        )
+
+    remaining = (
+        len(df)
+        - len(completed_ids)
+    )
+
+    print(
+        f"Total examples: {len(df)}"
+    )
+    print(
+        f"Remaining examples: {remaining}"
+    )
+    print(
+        f"Checkpoint: {result_path}"
+    )
+
+    if remaining > 0:
+        model, tokenizer = load_model(
+            model_name,
+            quantization=quantization,
+            cfg=cfg,
+        )
+
+        new_since_save = 0
+
+        for index, row in df.iterrows():
+            if index in completed_ids:
+                continue
+
+            example = row.to_dict()
+
+            (
                 text,
-                cfg,
+                original_input_tokens,
+                used_input_tokens,
+                was_truncated,
+            ) = fit_prompt(
+                tokenizer,
+                task,
+                example,
+                cfg["evaluation"][
+                    "max_input_tokens"
+                ],
             )
-        )
 
-        (
-            predicted_label,
-            parse_success,
-        ) = parse_output(
-            raw_output,
-            task,
-        )
+            raw_output = (
+                generate_prediction(
+                    model,
+                    tokenizer,
+                    text,
+                    cfg,
+                )
+            )
 
-        results.append(
-            {
-                "example_id": index,
-                "true_label": (
-                    row["label"]
-                ),
-                "predicted_label": (
-                    predicted_label
-                ),
-                "raw_output": (
-                    raw_output
-                ),
-                "parse_success": (
-                    parse_success
-                ),
-                "original_input_tokens": (
-                    original_input_tokens
-                ),
-                "used_input_tokens": (
-                    used_input_tokens
-                ),
-                "was_truncated": (
-                    was_truncated
-                ),
-            }
-        )
+            (
+                predicted_label,
+                parse_success,
+            ) = parse_output(
+                raw_output,
+                task,
+            )
+
+            results.append(
+                {
+                    "example_id": index,
+                    "true_label": (
+                        row["label"]
+                    ),
+                    "predicted_label": (
+                        predicted_label
+                    ),
+                    "raw_output": (
+                        raw_output
+                    ),
+                    "parse_success": (
+                        parse_success
+                    ),
+                    "original_input_tokens": (
+                        original_input_tokens
+                    ),
+                    "used_input_tokens": (
+                        used_input_tokens
+                    ),
+                    "was_truncated": (
+                        was_truncated
+                    ),
+                }
+            )
+
+            completed_ids.add(index)
+            new_since_save += 1
+
+            print(
+                f"{len(completed_ids)}/"
+                f"{len(df)} | "
+                f"true: {row['label']} | "
+                f"pred: {predicted_label}"
+            )
+
+            if (
+                new_since_save
+                >= checkpoint_every
+            ):
+                pd.DataFrame(
+                    results
+                ).to_csv(
+                    result_path,
+                    index=False,
+                    encoding="utf-8",
+                )
+
+                print(
+                    f"Checkpoint saved: "
+                    f"{len(completed_ids)}/"
+                    f"{len(df)}"
+                )
+
+                new_since_save = 0
 
     results_df = pd.DataFrame(
         results
     )
+
+    if not results_df.empty:
+        results_df = (
+            results_df
+            .drop_duplicates(
+                subset=["example_id"],
+                keep="last",
+            )
+            .sort_values(
+                "example_id"
+            )
+            .reset_index(
+                drop=True
+            )
+        )
+
+        results_df.to_csv(
+            result_path,
+            index=False,
+            encoding="utf-8",
+        )
 
     valid_df = results_df[
         results_df["parse_success"]
@@ -395,6 +530,22 @@ def evaluate(
             ].tolist(),
             task,
         )
+
+    print(
+        f"\nResults saved: "
+        f"{result_path}"
+    )
+
+    print(
+        f"Completed: "
+        f"{len(results_df)}/"
+        f"{len(df)}"
+    )
+
+    print(
+        f"Invalid outputs: "
+        f"{len(results_df) - len(valid_df)}"
+    )
 
     return (
         results_df,
