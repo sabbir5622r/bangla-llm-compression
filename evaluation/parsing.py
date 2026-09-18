@@ -16,7 +16,11 @@ def parse_output(output, task):
     matches = []
 
     for label in TASK_LABELS[task]:
-        if re.search(rf"\b{re.escape(label)}\b", text, flags=re.IGNORECASE):
+        if re.search(
+            rf"\b{re.escape(label)}\b",
+            text,
+            flags=re.IGNORECASE,
+        ):
             matches.append(label)
 
     if len(matches) == 1:
