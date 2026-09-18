@@ -130,7 +130,7 @@ def main():
     out_dir = processed_dir / "splits"
 
     files = {
-        "sentiment": "sentiment.csv",
+        "stance": "stance.csv",
         "nli": "nli.csv",
         "fake_news": "fake_news.csv",
     }
