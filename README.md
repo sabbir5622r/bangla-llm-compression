@@ -17,7 +17,7 @@
 
 > ### 💡 TL;DR
 >
-> This repository contains a reproducible evaluation framework for studying small Qwen2.5 language models under FP16, INT8, and 4 bit NF4 quantization on Bangla language understanding tasks. The project examines classification performance, model footprint, latency, throughput, checkpoint recovery, and compression behavior in resource constrained settings.
+> <p align="justify">This repository contains a reproducible evaluation framework for studying small Qwen2.5 language models under FP16, INT8, and 4 bit NF4 quantization on Bangla language understanding tasks. The project examines classification performance, model footprint, latency, throughput, checkpoint recovery, and compression behavior in resource constrained settings. </p>
 
 ---
 
@@ -25,9 +25,9 @@
 
 This project studies efficient small language models for Bangla language understanding.
 
-Three Qwen2.5 Instruct models are evaluated under multiple precision settings on three Bangla tasks. The implementation covers model loading, quantization, deterministic prompting, controlled long context handling, checkpoint based evaluation, result parsing, efficiency benchmarking, and post experiment analysis.
+<p align="justify">Three Qwen2.5 Instruct models are evaluated under multiple precision settings on three Bangla tasks. The implementation covers model loading, quantization, deterministic prompting, controlled long context handling, checkpoint based evaluation, result parsing, efficiency benchmarking, and post experiment analysis. </p>
 
-The project is motivated by the practical challenge of using capable language models in low resource languages and environments where memory and computational resources are limited.
+<p align="justify">The project is motivated by the practical challenge of using capable language models in low resource languages and environments where memory and computational resources are limited. </p>
 
 ---
 
@@ -302,26 +302,6 @@ evaluate(
     resume=True,
 )
 ```
-
----
-
-## 🔬 Research Scope
-
-This project is connected to my broader research interests in:
-
-Large Language Models
-
-Multilingual and Low Resource NLP
-
-Efficient Deep Learning
-
-Model Compression and Quantization
-
-Resource Constrained AI
-
-Vision Language Models
-
-Multimodal AI
 
 ---
 
