@@ -8,12 +8,18 @@ data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
-results/
+results/raw/*
+results/processed/*
+
+!results/raw/.gitkeep
+!results/processed/.gitkeep
+
 checkpoints/
 
+figures/*
+!figures/.gitkeep
 
 .ipynb_checkpoints/
 .vscode/
 
 .env
-
