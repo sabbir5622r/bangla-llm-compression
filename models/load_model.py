@@ -55,9 +55,23 @@ def load_model(model_name, quantization="fp16", cfg=None):
             device_map="auto",
         )
 
+    elif quantization == "int4":
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=False,
+        )
+
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            quantization_config=quantization_config,
+            device_map="auto",
+        )
+
     else:
         raise ValueError(
-            f"Quantization '{quantization}' is not implemented yet."
+            f"Unknown quantization mode: '{quantization}'."
         )
 
     model.eval()
