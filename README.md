@@ -323,7 +323,7 @@ Research interests include Natural Language Processing, Computer Vision, Large L
 
 GitHub: [sabbir5622r](https://github.com/sabbir5622r)
 
-Personal Websit: sabbir-hossen.com
+Personal Websit: [sabbir-hossen.com](https://sabbir-hossen.com)
 
 ---
 
