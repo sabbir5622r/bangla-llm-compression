@@ -4,7 +4,7 @@
 
 ### A Systematic Study of LLM Quantization for Low Resource Bangla Language Understanding
 
-**Evaluating FP16, INT8, and 4 bit NF4 quantization across Qwen2.5 Instruct models on Bangla stance classification, natural language inference, and fake news detection**
+**Evaluating FP16, INT8, and 4 bit NF4 quantization across Qwen2.5 Instruct models on Bangla Language Understanding
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python\&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch\&logoColor=white)](https://pytorch.org/)
@@ -337,11 +337,12 @@ Current work focuses on final analysis, efficiency trade off analysis, error ana
 
 **Md Sabbir Hossen**
 
-Computer Science Researcher
+Student | Research Assistant
 
-Research interests include Natural Language Processing, Computer Vision, Multimodal AI, Large Language Models, Vision Language Models, and Efficient AI.
+Research interests include Natural Language Processing, Computer Vision, Large Language Models, Vision Language Models, and Efficient AI.
 
 GitHub: [sabbir5622r](https://github.com/sabbir5622r)
+Personal Websit: sabbir-hossen.com
 
 ---
 
