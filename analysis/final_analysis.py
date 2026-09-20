@@ -10,30 +10,77 @@ OUTPUT_DIR = PROCESSED_DIR / "final_analysis"
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-FP16_PATH = PROCESSED_DIR / "fp16_metrics.csv"
-INT8_PATH = PROCESSED_DIR / "int8_metrics.csv"
-INT4_PATH = PROCESSED_DIR / "int4_metrics.csv"
-EFFICIENCY_PATH = PROCESSED_DIR / "efficiency_benchmark.csv"
+
+QWEN_FP16_PATH = PROCESSED_DIR / "fp16_metrics.csv"
+QWEN_INT8_PATH = PROCESSED_DIR / "int8_metrics.csv"
+QWEN_INT4_PATH = PROCESSED_DIR / "int4_metrics.csv"
+
+FALCON_FP16_PATH = PROCESSED_DIR / "falcon3_fp16_metrics.csv"
+FALCON_INT8_PATH = PROCESSED_DIR / "falcon3_int8_metrics.csv"
+FALCON_INT4_PATH = PROCESSED_DIR / "falcon3_int4_metrics.csv"
+
+QWEN_EFFICIENCY_PATH = (
+    PROCESSED_DIR / "efficiency_benchmark.csv"
+)
+
+FALCON_EFFICIENCY_PATH = (
+    PROCESSED_DIR / "falcon3_efficiency_benchmark.csv"
+)
 
 
-fp16 = pd.read_csv(FP16_PATH)
-int8 = pd.read_csv(INT8_PATH)
-int4 = pd.read_csv(INT4_PATH)
-efficiency = pd.read_csv(EFFICIENCY_PATH)
+qwen_fp16 = pd.read_csv(QWEN_FP16_PATH)
+qwen_int8 = pd.read_csv(QWEN_INT8_PATH)
+qwen_int4 = pd.read_csv(QWEN_INT4_PATH)
 
-fp16["quantization"] = "fp16"
-int8["quantization"] = "int8"
-int4["quantization"] = "int4"
+falcon_fp16 = pd.read_csv(FALCON_FP16_PATH)
+falcon_int8 = pd.read_csv(FALCON_INT8_PATH)
+falcon_int4 = pd.read_csv(FALCON_INT4_PATH)
+
+qwen_efficiency = pd.read_csv(
+    QWEN_EFFICIENCY_PATH
+)
+
+falcon_efficiency = pd.read_csv(
+    FALCON_EFFICIENCY_PATH
+)
+
+
+qwen_fp16["quantization"] = "fp16"
+qwen_int8["quantization"] = "int8"
+qwen_int4["quantization"] = "int4"
+
+falcon_fp16["quantization"] = "fp16"
+falcon_int8["quantization"] = "int8"
+falcon_int4["quantization"] = "int4"
+
 
 metrics = pd.concat(
-    [fp16, int8, int4],
+    [
+        qwen_fp16,
+        qwen_int8,
+        qwen_int4,
+        falcon_fp16,
+        falcon_int8,
+        falcon_int4,
+    ],
     ignore_index=True
 )
+
+
+efficiency = pd.concat(
+    [
+        qwen_efficiency,
+        falcon_efficiency,
+    ],
+    ignore_index=True
+)
+
 
 model_order = {
     "qwen2.5-0.5b-instruct": 0,
     "qwen2.5-1.5b-instruct": 1,
     "qwen2.5-3b-instruct": 2,
+    "falcon3-3b-instruct": 3,
 }
 
 task_order = {
@@ -48,9 +95,22 @@ quant_order = {
     "int4": 2,
 }
 
-metrics["_model_order"] = metrics["model"].map(model_order)
-metrics["_task_order"] = metrics["task"].map(task_order)
-metrics["_quant_order"] = metrics["quantization"].map(quant_order)
+
+metrics["_model_order"] = (
+    metrics["model"]
+    .map(model_order)
+)
+
+metrics["_task_order"] = (
+    metrics["task"]
+    .map(task_order)
+)
+
+metrics["_quant_order"] = (
+    metrics["quantization"]
+    .map(quant_order)
+)
+
 
 metrics = (
     metrics
@@ -58,58 +118,68 @@ metrics = (
         [
             "_model_order",
             "_task_order",
-            "_quant_order"
+            "_quant_order",
         ]
     )
     .drop(
         columns=[
             "_model_order",
             "_task_order",
-            "_quant_order"
+            "_quant_order",
         ]
     )
 )
 
+
 metrics.to_csv(
     OUTPUT_DIR / "master_results.csv",
-    index=False
+    index=False,
 )
+
 
 performance = metrics.pivot(
     index=["model", "task"],
     columns="quantization",
-    values="macro_f1"
+    values="macro_f1",
 ).reset_index()
 
 performance.columns.name = None
 
+
 performance["int8_f1_drop"] = (
-    performance["fp16"] - performance["int8"]
+    performance["fp16"]
+    - performance["int8"]
 )
 
 performance["int4_f1_drop"] = (
-    performance["fp16"] - performance["int4"]
+    performance["fp16"]
+    - performance["int4"]
 )
 
 performance["int8_retention"] = (
-    performance["int8"] / performance["fp16"]
+    performance["int8"]
+    / performance["fp16"]
 )
 
 performance["int4_retention"] = (
-    performance["int4"] / performance["fp16"]
+    performance["int4"]
+    / performance["fp16"]
 )
 
 performance["int8_retention_pct"] = (
-    performance["int8_retention"] * 100
+    performance["int8_retention"]
+    * 100
 )
 
 performance["int4_retention_pct"] = (
-    performance["int4_retention"] * 100
+    performance["int4_retention"]
+    * 100
 )
 
 performance["int8_relative_change_pct"] = (
     (
-        performance["int8"] - performance["fp16"]
+        performance["int8"]
+        - performance["fp16"]
     )
     / performance["fp16"]
     * 100
@@ -117,29 +187,36 @@ performance["int8_relative_change_pct"] = (
 
 performance["int4_relative_change_pct"] = (
     (
-        performance["int4"] - performance["fp16"]
+        performance["int4"]
+        - performance["fp16"]
     )
     / performance["fp16"]
     * 100
 )
 
+
 performance.to_csv(
     OUTPUT_DIR / "compression_summary.csv",
-    index=False
+    index=False,
 )
+
 
 fp16_efficiency = (
     efficiency[
-        efficiency["quantization"] == "fp16"
+        efficiency["quantization"]
+        == "fp16"
     ]
     .set_index("model")
 )
+
 
 efficiency_rows = []
 
 for _, row in efficiency.iterrows():
 
-    baseline = fp16_efficiency.loc[row["model"]]
+    baseline = fp16_efficiency.loc[
+        row["model"]
+    ]
 
     footprint_reduction_pct = (
         (
@@ -162,9 +239,13 @@ for _, row in efficiency.iterrows():
     throughput_change_pct = (
         (
             row["generated_tokens_per_second"]
-            - baseline["generated_tokens_per_second"]
+            - baseline[
+                "generated_tokens_per_second"
+            ]
         )
-        / baseline["generated_tokens_per_second"]
+        / baseline[
+            "generated_tokens_per_second"
+        ]
         * 100
     )
 
@@ -179,55 +260,86 @@ for _, row in efficiency.iterrows():
 
     result = row.to_dict()
 
-    result["footprint_reduction_pct"] = footprint_reduction_pct
-    result["latency_change_pct"] = latency_change_pct
-    result["throughput_change_pct"] = throughput_change_pct
-    result["example_throughput_change_pct"] = example_throughput_change_pct
+    result[
+        "footprint_reduction_pct"
+    ] = footprint_reduction_pct
 
-    efficiency_rows.append(result)
+    result[
+        "latency_change_pct"
+    ] = latency_change_pct
 
-efficiency_summary = pd.DataFrame(efficiency_rows)
+    result[
+        "throughput_change_pct"
+    ] = throughput_change_pct
+
+    result[
+        "example_throughput_change_pct"
+    ] = example_throughput_change_pct
+
+    efficiency_rows.append(
+        result
+    )
+
+
+efficiency_summary = pd.DataFrame(
+    efficiency_rows
+)
 
 efficiency_summary.to_csv(
-    OUTPUT_DIR / "efficiency_summary.csv",
-    index=False
+    OUTPUT_DIR
+    / "efficiency_summary.csv",
+    index=False,
 )
+
 
 fp16_baseline = (
     metrics[
-        metrics["quantization"] == "fp16"
+        metrics["quantization"]
+        == "fp16"
     ][
         [
             "model",
             "task",
-            "macro_f1"
+            "macro_f1",
         ]
     ]
     .rename(
         columns={
-            "macro_f1": "fp16_macro_f1"
+            "macro_f1":
+                "fp16_macro_f1"
         }
     )
 )
 
+
 paper_table = metrics.merge(
     fp16_baseline,
-    on=["model", "task"],
-    how="left"
+    on=[
+        "model",
+        "task",
+    ],
+    how="left",
 )
 
-paper_table["f1_retention_pct"] = (
+
+paper_table[
+    "f1_retention_pct"
+] = (
     paper_table["macro_f1"]
     / paper_table["fp16_macro_f1"]
     * 100
 )
 
-paper_table["absolute_f1_change"] = (
+paper_table[
+    "absolute_f1_change"
+] = (
     paper_table["macro_f1"]
     - paper_table["fp16_macro_f1"]
 )
 
-paper_table["relative_f1_change_pct"] = (
+paper_table[
+    "relative_f1_change_pct"
+] = (
     (
         paper_table["macro_f1"]
         - paper_table["fp16_macro_f1"]
@@ -235,6 +347,7 @@ paper_table["relative_f1_change_pct"] = (
     / paper_table["fp16_macro_f1"]
     * 100
 )
+
 
 paper_table = paper_table.merge(
     efficiency_summary[
@@ -254,37 +367,55 @@ paper_table = paper_table.merge(
     ],
     on=[
         "model",
-        "quantization"
+        "quantization",
     ],
-    how="left"
+    how="left",
 )
 
+
 paper_table.to_csv(
-    OUTPUT_DIR / "paper_master_table.csv",
-    index=False
+    OUTPUT_DIR
+    / "paper_master_table.csv",
+    index=False,
 )
+
 
 average_performance = (
     metrics
     .groupby(
         [
             "model",
-            "quantization"
+            "quantization",
         ],
-        as_index=False
+        as_index=False,
     )
     .agg(
-        mean_macro_f1=("macro_f1", "mean"),
-        mean_accuracy=("accuracy", "mean"),
-        mean_macro_precision=("macro_precision", "mean"),
-        mean_macro_recall=("macro_recall", "mean"),
+        mean_macro_f1=(
+            "macro_f1",
+            "mean",
+        ),
+        mean_accuracy=(
+            "accuracy",
+            "mean",
+        ),
+        mean_macro_precision=(
+            "macro_precision",
+            "mean",
+        ),
+        mean_macro_recall=(
+            "macro_recall",
+            "mean",
+        ),
     )
 )
 
+
 average_performance.to_csv(
-    OUTPUT_DIR / "average_performance.csv",
-    index=False
+    OUTPUT_DIR
+    / "average_performance.csv",
+    index=False,
 )
+
 
 pareto = average_performance.merge(
     efficiency_summary[
@@ -299,69 +430,149 @@ pareto = average_performance.merge(
     ],
     on=[
         "model",
-        "quantization"
+        "quantization",
     ],
-    how="left"
+    how="left",
 )
+
 
 pareto.to_csv(
-    OUTPUT_DIR / "pareto_analysis.csv",
-    index=False
+    OUTPUT_DIR
+    / "pareto_analysis.csv",
+    index=False,
 )
+
+
+qwen_models = [
+    "qwen2.5-0.5b-instruct",
+    "qwen2.5-1.5b-instruct",
+    "qwen2.5-3b-instruct",
+]
+
+
+qwen_performance = performance[
+    performance["model"].isin(
+        qwen_models
+    )
+].copy()
+
 
 task_sensitivity = (
-    performance
+    qwen_performance
     .groupby(
         "task",
-        as_index=False
+        as_index=False,
     )
     .agg(
-        fp16_mean=("fp16", "mean"),
-        int8_mean=("int8", "mean"),
-        int4_mean=("int4", "mean"),
+        fp16_mean=(
+            "fp16",
+            "mean",
+        ),
+        int8_mean=(
+            "int8",
+            "mean",
+        ),
+        int4_mean=(
+            "int4",
+            "mean",
+        ),
         int8_mean_retention_pct=(
             "int8_retention_pct",
-            "mean"
+            "mean",
         ),
         int4_mean_retention_pct=(
             "int4_retention_pct",
-            "mean"
+            "mean",
         ),
     )
 )
+
 
 task_sensitivity.to_csv(
-    OUTPUT_DIR / "task_sensitivity.csv",
-    index=False
+    OUTPUT_DIR
+    / "task_sensitivity.csv",
+    index=False,
 )
 
+
 model_sensitivity = (
-    performance
+    qwen_performance
     .groupby(
         "model",
-        as_index=False
+        as_index=False,
     )
     .agg(
-        fp16_mean=("fp16", "mean"),
-        int8_mean=("int8", "mean"),
-        int4_mean=("int4", "mean"),
+        fp16_mean=(
+            "fp16",
+            "mean",
+        ),
+        int8_mean=(
+            "int8",
+            "mean",
+        ),
+        int4_mean=(
+            "int4",
+            "mean",
+        ),
         int8_mean_retention_pct=(
             "int8_retention_pct",
-            "mean"
+            "mean",
         ),
         int4_mean_retention_pct=(
             "int4_retention_pct",
-            "mean"
+            "mean",
         ),
     )
 )
 
+
 model_sensitivity.to_csv(
-    OUTPUT_DIR / "model_sensitivity.csv",
-    index=False
+    OUTPUT_DIR
+    / "model_sensitivity.csv",
+    index=False,
 )
 
-print("\nPERFORMANCE RETENTION\n")
+
+cross_family_models = [
+    "qwen2.5-3b-instruct",
+    "falcon3-3b-instruct",
+]
+
+
+cross_family = performance[
+    performance["model"].isin(
+        cross_family_models
+    )
+].copy()
+
+
+cross_family.to_csv(
+    OUTPUT_DIR
+    / "cross_family_comparison.csv",
+    index=False,
+)
+
+
+cross_family_efficiency = (
+    efficiency_summary[
+        efficiency_summary["model"].isin(
+            cross_family_models
+        )
+    ]
+    .copy()
+)
+
+
+cross_family_efficiency.to_csv(
+    OUTPUT_DIR
+    / "cross_family_efficiency.csv",
+    index=False,
+)
+
+
+print(
+    "\nPERFORMANCE RETENTION\n"
+)
 
 print(
     performance[
@@ -376,10 +587,15 @@ print(
         ]
     ]
     .round(4)
-    .to_string(index=False)
+    .to_string(
+        index=False
+    )
 )
 
-print("\nEFFICIENCY SUMMARY\n")
+
+print(
+    "\nEFFICIENCY SUMMARY\n"
+)
 
 print(
     efficiency_summary[
@@ -393,26 +609,64 @@ print(
         ]
     ]
     .round(4)
-    .to_string(index=False)
+    .to_string(
+        index=False
+    )
 )
 
-print("\nTASK SENSITIVITY\n")
+
+print(
+    "\nQWEN TASK SENSITIVITY\n"
+)
 
 print(
     task_sensitivity
     .round(4)
-    .to_string(index=False)
+    .to_string(
+        index=False
+    )
 )
 
-print("\nMODEL SENSITIVITY\n")
+
+print(
+    "\nQWEN MODEL SENSITIVITY\n"
+)
 
 print(
     model_sensitivity
     .round(4)
-    .to_string(index=False)
+    .to_string(
+        index=False
+    )
 )
 
-print("\nFILES SAVED\n")
+
+print(
+    "\nCROSS FAMILY COMPARISON\n"
+)
+
+print(
+    cross_family[
+        [
+            "model",
+            "task",
+            "fp16",
+            "int8",
+            "int4",
+            "int8_retention_pct",
+            "int4_retention_pct",
+        ]
+    ]
+    .round(4)
+    .to_string(
+        index=False
+    )
+)
+
+
+print(
+    "\nFILES SAVED\n"
+)
 
 for path in sorted(
     OUTPUT_DIR.glob("*.csv")

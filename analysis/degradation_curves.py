@@ -118,7 +118,7 @@ fig.legend(
 )
 
 fig.suptitle(
-    "Performance Degradation Under Quantization",
+    "Qwen2.5 Performance Degradation Under Quantization",
     fontsize=15,
     fontweight="bold",
     y=1.10

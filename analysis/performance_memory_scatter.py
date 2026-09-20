@@ -14,25 +14,30 @@ ANALYSIS_DIR = (
 )
 
 FIGURE_DIR = ROOT / "figures" / "final"
+FIGURE_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
 
 pareto = pd.read_csv(
     ANALYSIS_DIR / "pareto_analysis.csv"
 )
 
 model_labels = {
-    "qwen2.5-0.5b-instruct": "0.5B",
-    "qwen2.5-1.5b-instruct": "1.5B",
-    "qwen2.5-3b-instruct": "3B",
+    "qwen2.5-0.5b-instruct": "Qwen2.5 0.5B",
+    "qwen2.5-1.5b-instruct": "Qwen2.5 1.5B",
+    "qwen2.5-3b-instruct": "Qwen2.5 3B",
+    "falcon3-3b-instruct": "Falcon3 3B",
 }
 
 quant_labels = {
     "fp16": "FP16",
     "int8": "INT8",
-    "int4": "4-bit",
+    "int4": "4-bit NF4",
 }
 
 fig, ax = plt.subplots(
-    figsize=(8, 5.5)
+    figsize=(9, 6)
 )
 
 for _, row in pareto.iterrows():
@@ -45,7 +50,7 @@ for _, row in pareto.iterrows():
     ax.scatter(
         row["model_footprint_gb"],
         row["mean_macro_f1"],
-        s=85
+        s=90
     )
 
     ax.annotate(
@@ -68,7 +73,7 @@ ax.set_ylabel(
 )
 
 ax.set_title(
-    "Performance–Memory Trade-off",
+    "Performance–Memory Trade-off Across Model Families",
     fontsize=14,
     fontweight="bold"
 )

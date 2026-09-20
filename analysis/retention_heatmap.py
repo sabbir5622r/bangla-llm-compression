@@ -16,6 +16,11 @@ ANALYSIS_DIR = (
 
 FIGURE_DIR = ROOT / "figures" / "final"
 
+FIGURE_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
 performance = pd.read_csv(
     ANALYSIS_DIR / "compression_summary.csv"
 )
@@ -57,10 +62,12 @@ for model in model_order:
             (performance["task"] == task)
         ].iloc[0]
 
-        rows.append([
-            row["int8_retention_pct"],
-            row["int4_retention_pct"],
-        ])
+        rows.append(
+            [
+                row["int8_retention_pct"],
+                row["int4_retention_pct"],
+            ]
+        )
 
         labels.append(
             f"{model_labels[model]} — {task_labels[task]}"
@@ -84,7 +91,7 @@ ax.set_xticks(
 ax.set_xticklabels(
     [
         "INT8",
-        "4-bit NF4"
+        "4-bit NF4",
     ]
 )
 
@@ -107,19 +114,19 @@ for i in range(matrix.shape[0]):
             ha="center",
             va="center",
             fontsize=9,
-            fontweight="bold"
+            fontweight="bold",
         )
 
 ax.set_title(
-    "FP16 Performance Retained After Quantization",
+    "Qwen2.5 FP16 Performance Retained After Quantization",
     fontsize=14,
     fontweight="bold",
-    pad=12
+    pad=12,
 )
 
 cbar = fig.colorbar(
     image,
-    ax=ax
+    ax=ax,
 )
 
 cbar.set_label(
@@ -131,12 +138,12 @@ plt.tight_layout()
 plt.savefig(
     FIGURE_DIR / "retention_heatmap.png",
     dpi=600,
-    bbox_inches="tight"
+    bbox_inches="tight",
 )
 
 plt.savefig(
     FIGURE_DIR / "retention_heatmap.pdf",
-    bbox_inches="tight"
+    bbox_inches="tight",
 )
 
 plt.show()
