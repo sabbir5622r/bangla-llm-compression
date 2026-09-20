@@ -6,15 +6,7 @@
 
 **Evaluating FP16, INT8, and 4 bit NF4 quantization across Qwen2.5 and Falcon3 Instruct models on Bangla Language Understanding.**
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-
-[![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-FFD21E)](https://huggingface.co/docs/transformers/)
-
-[![Qwen2.5](https://img.shields.io/badge/Model-Qwen2.5-blue)](https://huggingface.co/Qwen)
-
-[![Falcon3](https://img.shields.io/badge/Model-Falcon3-green)](https://huggingface.co/tiiuae/Falcon3-3B-Instruct)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/) [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/) [![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-FFD21E)](https://huggingface.co/docs/transformers/) [![Qwen2.5](https://img.shields.io/badge/Model-Qwen2.5-blue)](https://huggingface.co/Qwen) [![Falcon3](https://img.shields.io/badge/Model-Falcon3-green)](https://huggingface.co/tiiuae/Falcon3-3B-Instruct)
 
 </div>
 
