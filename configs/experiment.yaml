@@ -75,5 +75,5 @@ experiments:
       model_id: Qwen/Qwen2.5-3B-Instruct
       size: 3b
 
-    - name: phi3.5-mini-instruct
-      model_id: microsoft/Phi-3.5-mini-instruct 
+    - name: falcon3-3b-instruct
+      model_id: tiiuae/Falcon3-3B-Instruct
