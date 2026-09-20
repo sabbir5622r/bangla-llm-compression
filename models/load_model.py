@@ -38,6 +38,7 @@ def load_model(model_name, quantization="fp16", cfg=None):
     tokenizer = AutoTokenizer.from_pretrained(
         model_id,
         use_fast=True,
+        trust_remote_code=True,
     )
 
     if tokenizer.pad_token_id is None:
@@ -48,6 +49,7 @@ def load_model(model_name, quantization="fp16", cfg=None):
             model_id,
             dtype=torch.float16,
             device_map="auto",
+            trust_remote_code=True,
         )
 
     elif quantization == "int8":
@@ -59,6 +61,7 @@ def load_model(model_name, quantization="fp16", cfg=None):
             model_id,
             quantization_config=quantization_config,
             device_map="auto",
+            trust_remote_code=True,
         )
 
     elif quantization == "int4":
@@ -73,6 +76,7 @@ def load_model(model_name, quantization="fp16", cfg=None):
             model_id,
             quantization_config=quantization_config,
             device_map="auto",
+            trust_remote_code=True,
         )
 
     else:

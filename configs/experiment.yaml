@@ -75,7 +75,5 @@ experiments:
       model_id: Qwen/Qwen2.5-3B-Instruct
       size: 3b
 
-    - name: llama3.2-3b-instruct
-      model_id: meta-llama/Llama-3.2-3B-Instruct
-      family: llama3.2
-      parameters: 3.0  
+    - name: phi3.5-mini-instruct
+      model_id: microsoft/Phi-3.5-mini-instruct 
