@@ -35,7 +35,13 @@ def load_model(model_name, quantization="fp16", cfg=None):
     model_cfg = get_model_config(cfg, model_name)
     model_id = model_cfg["model_id"]
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        use_fast=True,
+    )
+
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
     if quantization == "fp16":
         model = AutoModelForCausalLM.from_pretrained(
