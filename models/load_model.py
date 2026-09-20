@@ -47,7 +47,7 @@ def load_model(model_name, quantization="fp16", cfg=None):
     if quantization == "fp16":
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
-            dtype=torch.float16,
+            torch_dtype=torch.float16,
             device_map="auto",
             trust_remote_code=True,
         )
