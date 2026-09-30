@@ -28,6 +28,25 @@ This project studies efficient small language models for Bangla language underst
 
 ---
 
+
+## 📑 Table of Contents
+
+1. [Overview](#-overview)
+2. [Models](#-models)
+3. [Quantization](#️-quantization)
+4. [Evaluation Tasks](#-evaluation-tasks)
+5. [Experimental Setup](#-experimental-setup)
+6. [Evaluation Metrics](#-evaluation-metrics)
+7. [Compression Behavior](#-compression-behavior)
+8. [Efficiency Analysis](#-efficiency-analysis)
+9. [Checkpoint and Resume](#-checkpoint-and-resume)
+10. [Repository Structure](#-repository-structure)
+11. [Usage](#-usage)
+12. [Status](#-status)
+13. [Author](#-author)
+
+---
+
 ## 🤖 Models
 
 <p align="justify">The experiments use three instruction tuned models from the Qwen2.5 family and Falcon3 3B Instruct as an additional model for cross family validation. </p>
