@@ -20,19 +20,21 @@ env/
 .env
 .env.*
 
-# Raw and processed datasets
+# Datasets
 data/raw/
 data/processed/
 
-# Evaluation outputs
+# Experiment outputs
 results/raw/
 results/processed/
 
 # Generated figures
 figures/
 
-# Checkpoints and logs
+# Model checkpoints
 checkpoints/
+
+# Logs
 logs/
 
 # OS files
