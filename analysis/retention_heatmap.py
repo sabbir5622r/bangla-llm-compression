@@ -92,7 +92,8 @@ ax.set_xticklabels(
     [
         "INT8",
         "4-bit NF4",
-    ]
+    ],
+    fontsize=20,
 )
 
 ax.set_yticks(
@@ -100,7 +101,8 @@ ax.set_yticks(
 )
 
 ax.set_yticklabels(
-    labels
+    labels,
+    fontsize=20,
 )
 
 for i in range(matrix.shape[0]):
@@ -113,16 +115,9 @@ for i in range(matrix.shape[0]):
             f"{matrix[i, j]:.1f}%",
             ha="center",
             va="center",
-            fontsize=9,
+            fontsize=18,
             fontweight="bold",
         )
-
-ax.set_title(
-    "Qwen2.5 FP16 Performance Retained After Quantization",
-    fontsize=14,
-    fontweight="bold",
-    pad=12,
-)
 
 cbar = fig.colorbar(
     image,
@@ -130,7 +125,17 @@ cbar = fig.colorbar(
 )
 
 cbar.set_label(
-    "Performance Retention (%)"
+    "Performance Retention (%)",
+    fontsize=20,
+)
+
+cbar.ax.tick_params(
+    labelsize=18
+)
+
+ax.tick_params(
+    axis="both",
+    labelsize=20,
 )
 
 plt.tight_layout()

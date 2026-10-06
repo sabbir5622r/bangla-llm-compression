@@ -70,21 +70,22 @@ for task, task_label in task_labels.items():
             value + 0.015,
             f"{value:.3f}",
             ha="center",
-            fontsize=9
+            fontsize=14
         )
 
 ax.set_ylabel(
-    "Macro-F1"
+    "Macro-F1",
+    fontsize=16
 )
 
 ax.set_xlabel(
-    "Quantization Level"
+    "Quantization Level",
+    fontsize=16
 )
 
-ax.set_title(
-    "Qwen2.5-3B Compression Sensitivity",
-    fontsize=14,
-    fontweight="bold"
+ax.tick_params(
+    axis="both",
+    labelsize=14
 )
 
 ax.grid(
@@ -93,7 +94,8 @@ ax.grid(
 )
 
 ax.legend(
-    frameon=False
+    frameon=False,
+    fontsize=14
 )
 
 ax.spines["top"].set_visible(False)

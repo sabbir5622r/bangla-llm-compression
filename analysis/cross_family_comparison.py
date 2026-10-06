@@ -88,22 +88,22 @@ for task, task_label in (
                 value + 0.015,
                 f"{value:.3f}",
                 ha="center",
-                fontsize=8.5,
+                fontsize=18,
             )
 
     ax.set_ylabel(
-        "Macro-F1"
+        "Macro-F1",
+        fontsize=20,
     )
 
     ax.set_xlabel(
-        "Quantization Level"
+        "Quantization Level",
+        fontsize=20,
     )
 
-    ax.set_title(
-        f"Cross-Family Compression Comparison: "
-        f"{task_label}",
-        fontsize=13,
-        fontweight="bold",
+    ax.tick_params(
+        axis="both",
+        labelsize=18,
     )
 
     ax.grid(
@@ -112,7 +112,8 @@ for task, task_label in (
     )
 
     ax.legend(
-        frameon=False
+        frameon=False,
+        fontsize=18,
     )
 
     ax.spines[

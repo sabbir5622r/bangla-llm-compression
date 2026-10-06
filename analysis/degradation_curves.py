@@ -34,10 +34,11 @@ tasks = {
 
 quantizations = ["FP16", "INT8", "4-bit NF4"]
 
+
 fig, axes = plt.subplots(
     1,
     3,
-    figsize=(12.5, 4.2),
+    figsize=(13.5, 4.6),
     sharey=True
 )
 
@@ -62,8 +63,8 @@ for ax, (task, task_label) in zip(
             quantizations,
             values,
             marker="o",
-            linewidth=2,
-            markersize=6,
+            linewidth=2.3,
+            markersize=7,
             label=model_label
         )
 
@@ -71,22 +72,32 @@ for ax, (task, task_label) in zip(
             quantizations,
             values
         ):
-            ax.text(
-                x,
-                value + 0.02,
+            ax.annotate(
                 f"{value:.3f}",
+                xy=(x, value),
+                xytext=(0, 7),
+                textcoords="offset points",
                 ha="center",
-                fontsize=8
+                va="bottom",
+                fontsize=11
             )
 
+    # Keep task-title size approximately unchanged
     ax.set_title(
         task_label,
         fontsize=13,
-        fontweight="bold"
+        fontweight="bold",
+        pad=8
     )
 
     ax.set_xlabel(
-        "Quantization Level"
+        "Quantization Level",
+        fontsize=12
+    )
+
+    ax.tick_params(
+        axis="both",
+        labelsize=11
     )
 
     ax.grid(
@@ -97,14 +108,17 @@ for ax, (task, task_label) in zip(
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
+
 axes[0].set_ylabel(
-    "Macro-F1"
+    "Macro-F1",
+    fontsize=12
 )
 
 axes[0].set_ylim(
     0,
     0.85
 )
+
 
 handles, labels = axes[0].get_legend_handles_labels()
 
@@ -114,17 +128,20 @@ fig.legend(
     loc="upper center",
     ncol=3,
     frameon=False,
-    bbox_to_anchor=(0.5, 1.03)
+    bbox_to_anchor=(0.5, 1.01),
+    fontsize=11,
+    handlelength=2.0,
+    columnspacing=2.2
 )
 
-fig.suptitle(
-    "Qwen2.5 Performance Degradation Under Quantization",
-    fontsize=15,
-    fontweight="bold",
-    y=1.10
+
+# No overall figure title.
+# The description belongs in the LaTeX caption.
+
+plt.tight_layout(
+    rect=[0, 0, 1, 0.92]
 )
 
-plt.tight_layout()
 
 plt.savefig(
     FIGURE_DIR / "compression_degradation_curves.png",

@@ -1,25 +1,40 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyd
+*.so
 
-data/raw/*
-data/processed/*
+# Virtual environments
+.venv/
+venv/
+env/
 
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-
-results/raw/*
-results/processed/*
-
-!results/raw/.gitkeep
-!results/processed/.gitkeep
-
-checkpoints/
-
-figures/*
-!figures/.gitkeep
-
-.ipynb_checkpoints/
+# IDE
 .vscode/
+.idea/
 
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment files
 .env
+.env.*
+
+# Raw and processed datasets
+data/raw/
+data/processed/
+
+# Evaluation outputs
+results/raw/
+results/processed/
+
+# Generated figures
+figures/
+
+# Checkpoints and logs
+checkpoints/
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
