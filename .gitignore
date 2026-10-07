@@ -20,9 +20,13 @@ env/
 .env
 .env.*
 
+
 # Datasets
-data/raw/
-data/processed/
+data/raw/*
+!data/raw/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
 
 # Experiment outputs
 results/raw/
@@ -40,3 +44,4 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
+
