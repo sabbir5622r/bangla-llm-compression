@@ -345,10 +345,10 @@ If you use this repository or its experimental framework, please consider citing
       title={How Much Can We Compress Small LLMs? Quantization Trade-offs for Low-Resource Bangla Language Understanding}, 
       author={Md Sabbir Hossen and Anichur Rahman and Pabon Shaha and Andrew H. Sung and Md Shohel Rana},
       year={2026},
-      eprint={2610.8184772},
+      eprint={2610.},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2608.24615}, 
+      url={https://arxiv.org/abs/2610.}, 
 }
 ```
 
@@ -356,7 +356,8 @@ If you use this repository or its experimental framework, please consider citing
 
 <div align="center">
 
-**Built for reproducible research on efficient LLMs and low-resource language understanding.**  
+**Built with love ❤️ for reproducible research on efficient and multilingual LLMs.**
+
 *If this repository supports your research, consider giving it a ⭐ and citing the paper.*
 
-</div>
+**❤️ Bangla LLM Compression Team ❤️**
