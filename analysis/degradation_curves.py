@@ -82,7 +82,7 @@ for ax, (task, task_label) in zip(
                 fontsize=11
             )
 
-    # Keep task-title size approximately unchanged
+    
     ax.set_title(
         task_label,
         fontsize=13,
@@ -134,9 +134,6 @@ fig.legend(
     columnspacing=2.2
 )
 
-
-# No overall figure title.
-# The description belongs in the LaTeX caption.
 
 plt.tight_layout(
     rect=[0, 0, 1, 0.92]

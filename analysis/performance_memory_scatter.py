@@ -39,7 +39,7 @@ quant_labels = {
 }
 
 
-# Different marker shapes identify model/model scale
+
 model_markers = {
     "qwen2.5-0.5b-instruct": "o",
     "qwen2.5-1.5b-instruct": "s",
@@ -48,7 +48,7 @@ model_markers = {
 }
 
 
-# Use Matplotlib's default color cycle for precision
+
 default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
 quant_colors = {
@@ -63,9 +63,6 @@ fig, ax = plt.subplots(
 )
 
 
-# --------------------------------------------------
-# Scatter points
-# --------------------------------------------------
 
 for _, row in pareto.iterrows():
 
@@ -81,9 +78,6 @@ for _, row in pareto.iterrows():
     )
 
 
-# --------------------------------------------------
-# Axes
-# --------------------------------------------------
 
 ax.set_xlabel(
     "Model Footprint (GB)",
@@ -110,10 +104,6 @@ ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 
 
-# --------------------------------------------------
-# Model legend: marker shape
-# --------------------------------------------------
-
 model_handles = [
     Line2D(
         [0],
@@ -128,10 +118,6 @@ model_handles = [
     for model, label in model_labels.items()
 ]
 
-
-# --------------------------------------------------
-# Precision legend: color
-# --------------------------------------------------
 
 quant_handles = [
     Line2D(
@@ -148,7 +134,7 @@ quant_handles = [
 ]
 
 
-# First legend: models
+
 legend_models = ax.legend(
     handles=model_handles,
     title="Model",
@@ -165,7 +151,6 @@ legend_models = ax.legend(
 ax.add_artist(legend_models)
 
 
-# Second legend: quantization
 ax.legend(
     handles=quant_handles,
     title="Precision",
@@ -180,15 +165,10 @@ ax.legend(
 )
 
 
-# Leave room for legends
 plt.tight_layout(
     rect=[0, 0, 1, 0.87]
 )
 
-
-# --------------------------------------------------
-# Save
-# --------------------------------------------------
 
 plt.savefig(
     FIGURE_DIR / "performance_memory_scatter.png",
